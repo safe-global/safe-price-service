@@ -31,10 +31,12 @@ CACHES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#password-hashers
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
-# Fix error with `task_id` when running celery in eager mode
-LOGGING["formatters"]["celery_verbose"] = LOGGING["formatters"]["verbose"]  # noqa F405
 LOGGING["loggers"] = {  # noqa F405
     "safe_price_service": {
         "level": "DEBUG",
     }
 }
+
+ETHEREUM_TEST_PRIVATE_KEY = (
+    "6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c"
+)

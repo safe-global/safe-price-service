@@ -304,3 +304,7 @@ SWAGGER_SETTINGS = {
         "api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}
     },
 }
+
+# Ethereum
+ETHEREUM_NODE_URL = env("ETHEREUM_NODE_URL", default=None)
+ETHEREUM_NODES_URLS = env.list("ETHEREUM_NODES_URLS", default=[])
