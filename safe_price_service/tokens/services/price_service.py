@@ -11,7 +11,7 @@ from django.conf import settings
 from eth.constants import ZERO_ADDRESS
 from eth_typing import ChecksumAddress
 
-from gnosis.eth import EthereumClient, EthereumClientProvider
+from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.eth.oracles import (
@@ -75,18 +75,6 @@ def get_price_service(chain_id: int) -> Optional['PriceService']:
     return get_price_services().get(chain_id)
 
 
-class PriceServiceProvider:
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = PriceService(EthereumClientProvider())
-        return cls.instance
-
-    @classmethod
-    def del_singleton(cls):
-        if hasattr(cls, "instance"):
-            del cls.instance
-
-
 class PriceService:
     def __init__(self, ethereum_client: EthereumClient):
         self.ethereum_client = ethereum_client
@@ -94,19 +82,21 @@ class PriceService:
         self.coingecko_client = CoingeckoClient(self.ethereum_network)
         self.kraken_client = KrakenClient()
         self.kucoin_client = KucoinClient()
+
+        # Caches
+        self.prices_cache_ttl_minutes: int = settings.PRICES_CACHE_TTL_MINUTES
         self.cache_native_coin_usd_price = TTLCache(
-            maxsize=2048, ttl=60 * 30
-        )  # 30 minutes of caching
+            maxsize=2048, ttl=60 * self.prices_cache_ttl_minutes
+        )
         self.cache_token_eth_value = TTLCache(
-            maxsize=2048, ttl=60 * 30
-        )  # 30 minutes of caching
+            maxsize=2048, ttl=60 * self.prices_cache_ttl_minutes
+        )
         self.cache_token_coingecko_usd_value = TTLCache(
-            maxsize=2048, ttl=60 * 30
-        )  # 30 minutes of caching
+            maxsize=2048, ttl=60 * self.prices_cache_ttl_minutes
+        )
         self.cache_underlying_token = TTLCache(
-            maxsize=2048, ttl=60 * 30
-        )  # 30 minutes of caching
-        self.cache_token_info = {}
+            maxsize=2048, ttl=60 * self.prices_cache_ttl_minutes
+        )
 
     @cached_property
     def enabled_price_oracles(self) -> Tuple[PriceOracle]:

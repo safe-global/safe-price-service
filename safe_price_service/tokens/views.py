@@ -10,7 +10,6 @@ from gnosis.eth.utils import fast_is_checksum_address
 
 from . import serializers
 from .clients import CannotGetPrice
-from .services import PriceServiceProvider
 from .services.price_service import get_price_service, is_chain_supported
 
 
