@@ -47,7 +47,7 @@ class TokenPriceView(GenericAPIView):
             data = {
                 "fiat_code": "USD",
                 "fiat_price": str(price_service.get_token_usd_price(address)),
-                "timestamp": timezone.now(),  #FIXME
+                "timestamp": timezone.now(),  # FIXME
             }
             serializer = self.get_serializer(data=data)
             assert serializer.is_valid()

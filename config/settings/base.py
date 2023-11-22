@@ -55,9 +55,9 @@ GUNICORN_WORKERS = gunicorn_workers
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 # Project does not need a database for now
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
     }
 }
 

@@ -2,12 +2,13 @@ import operator
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from functools import cached_property
+from functools import cache, cached_property
 from logging import getLogger
-from typing import List, Optional, Tuple, Dict
+from typing import Dict, List, Optional, Tuple
+
+from django.conf import settings
 
 from cachetools import TTLCache, cachedmethod
-from django.conf import settings
 from eth.constants import ZERO_ADDRESS
 from eth_typing import ChecksumAddress
 
@@ -35,7 +36,6 @@ from gnosis.eth.oracles import (
     YearnOracle,
 )
 
-from functools import cache
 from ..clients import CannotGetPrice, CoingeckoClient, KrakenClient, KucoinClient
 
 logger = getLogger(__name__)
@@ -51,15 +51,14 @@ class FiatPriceWithTimestamp:
     """
     Contains fiat price and when was calculated
     """
+
     fiat_price: float
     fiat_code: FiatCode
     timestamp: datetime
 
 
-
-
 @cache
-def get_price_services() -> Dict[int, 'PriceService']:
+def get_price_services() -> Dict[int, "PriceService"]:
     price_services = {}
     for node_url in settings.ETHEREUM_NODES_URLS:
         ethereum_client = EthereumClient(node_url)
@@ -67,11 +66,11 @@ def get_price_services() -> Dict[int, 'PriceService']:
     return price_services
 
 
-def is_chain_supported(chain_id: int)-> bool:
+def is_chain_supported(chain_id: int) -> bool:
     return chain_id in get_price_services()
 
 
-def get_price_service(chain_id: int) -> Optional['PriceService']:
+def get_price_service(chain_id: int) -> Optional["PriceService"]:
     return get_price_services().get(chain_id)
 
 
@@ -359,7 +358,9 @@ class PriceService:
         return 0.0
 
     @cachedmethod(cache=operator.attrgetter("cache_token_coingecko_usd_value"))
-    def get_token_usd_price_from_coingecko(self, token_address: ChecksumAddress) -> float:
+    def get_token_usd_price_from_coingecko(
+        self, token_address: ChecksumAddress
+    ) -> float:
         """
         :param token_address:
         :return: usd value for a given `token_address` using Coingecko
@@ -423,7 +424,9 @@ class PriceService:
         if token_address == ZERO_ADDRESS:
             return self.get_native_coin_usd_price()
 
-        eth_value = self.get_token_eth_value_from_oracles(token_address) or self.get_token_eth_value_from_composed_oracles(token_address)
+        eth_value = self.get_token_eth_value_from_oracles(
+            token_address
+        ) or self.get_token_eth_value_from_composed_oracles(token_address)
         if eth_value:
             return eth_value * self.get_native_coin_usd_price()
         return self.get_token_usd_price_from_coingecko(token_address)

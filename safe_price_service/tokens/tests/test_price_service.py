@@ -8,10 +8,15 @@ from eth_account import Account
 
 from gnosis.eth import EthereumClient, EthereumNetwork
 from gnosis.eth.oracles import KyberOracle, OracleException, UnderlyingToken
+from gnosis.eth.tests.utils import just_test_if_mainnet_node
 
 from ..clients import CannotGetPrice, CoingeckoClient, KrakenClient, KucoinClient
-from ..services.price_service import PriceService, get_price_services, get_price_service, is_chain_supported
-from gnosis.eth.tests.utils import just_test_if_mainnet_node
+from ..services.price_service import (
+    PriceService,
+    get_price_service,
+    get_price_services,
+    is_chain_supported,
+)
 
 
 class TestPriceService(TestCase):
@@ -27,18 +32,31 @@ class TestPriceService(TestCase):
         get_price_services.cache_clear()
 
     def test_get_price_services(self):
-        with self.settings(ETHEREUM_NODES_URLS=[self.ethereum_client.ethereum_node_url, self.ethereum_client.ethereum_node_url]):
+        with self.settings(
+            ETHEREUM_NODES_URLS=[
+                self.ethereum_client.ethereum_node_url,
+                self.ethereum_client.ethereum_node_url,
+            ]
+        ):
             chain_id = self.ethereum_client.get_chain_id()
             get_price_services.cache_clear()
-            self.assertEqual(len(get_price_services()), 1)  # Same chainId, only one dict entry
+            self.assertEqual(
+                len(get_price_services()), 1
+            )  # Same chainId, only one dict entry
             self.assertTrue(is_chain_supported(chain_id))
 
-        with self.settings(ETHEREUM_NODES_URLS=['http://localhost:8545', 'http://random-node:8545']):
+        with self.settings(
+            ETHEREUM_NODES_URLS=["http://localhost:8545", "http://random-node:8545"]
+        ):
             # Chain id is called thrice for every url, as cache is not mocked
             chain_ids = [4815, 4815, 4815, 1623, 1623, 1623]
             get_price_services.cache_clear()
-            with mock.patch.object(EthereumClient, 'get_chain_id', side_effect=chain_ids) as get_chain_id_mock:
-                self.assertEqual(len(get_price_services()), 2)  # Same chainId, only one dict entry
+            with mock.patch.object(
+                EthereumClient, "get_chain_id", side_effect=chain_ids
+            ) as get_chain_id_mock:
+                self.assertEqual(
+                    len(get_price_services()), 2
+                )  # Same chainId, only one dict entry
                 self.assertTrue(is_chain_supported(chain_ids[0]))
                 self.assertTrue(is_chain_supported(chain_ids[1]))
                 assert get_chain_id_mock.call_count == 6
@@ -237,7 +255,9 @@ class TestPriceService(TestCase):
         mainnet_node = just_test_if_mainnet_node()
         price_service = PriceService(EthereumClient(mainnet_node))
         gno_token_address = "0x6810e776880C02933D47DB1b9fc05908e5386b96"
-        token_eth_value = price_service.get_token_eth_value_from_oracles(gno_token_address)
+        token_eth_value = price_service.get_token_eth_value_from_oracles(
+            gno_token_address
+        )
         self.assertIsInstance(token_eth_value, float)
         self.assertGreater(token_eth_value, 0)
 
@@ -253,7 +273,9 @@ class TestPriceService(TestCase):
         random_address = Account.create().address
         self.assertEqual(len(price_service.cache_token_eth_value), 0)
 
-        self.assertEqual(price_service.get_token_eth_value_from_oracles(random_address), 1.23)
+        self.assertEqual(
+            price_service.get_token_eth_value_from_oracles(random_address), 1.23
+        )
         self.assertEqual(price_service.cache_token_eth_value[(random_address,)], 1.23)
 
         # Make every oracle fail
@@ -262,9 +284,13 @@ class TestPriceService(TestCase):
         oracle_3.get_price.side_effect = OracleException
 
         # Check cache
-        self.assertEqual(price_service.get_token_eth_value_from_oracles(random_address), 1.23)
+        self.assertEqual(
+            price_service.get_token_eth_value_from_oracles(random_address), 1.23
+        )
         random_address_2 = Account.create().address
-        self.assertEqual(price_service.get_token_eth_value_from_oracles(random_address_2), 0.0)
+        self.assertEqual(
+            price_service.get_token_eth_value_from_oracles(random_address_2), 0.0
+        )
         self.assertEqual(price_service.cache_token_eth_value[(random_address,)], 1.23)
         self.assertEqual(price_service.cache_token_eth_value[(random_address_2,)], 0.0)
 
@@ -272,7 +298,10 @@ class TestPriceService(TestCase):
         PriceService, "get_underlying_tokens", return_value=[], autospec=True
     )
     @mock.patch.object(
-        PriceService, "get_token_eth_value_from_oracles", autospec=True, return_value=1.0
+        PriceService,
+        "get_token_eth_value_from_oracles",
+        autospec=True,
+        return_value=1.0,
     )
     def test_get_token_eth_value_from_composed_oracles(
         self, get_token_eth_value_mock: MagicMock, price_service_mock: MagicMock
@@ -296,10 +325,17 @@ class TestPriceService(TestCase):
         self.assertIsInstance(token_eth_value, float)
         self.assertGreater(token_eth_value, 0)
         with mock.patch.object(
-            PriceService, "get_token_eth_value_from_oracles", autospec=True, return_value=0
+            PriceService,
+            "get_token_eth_value_from_oracles",
+            autospec=True,
+            return_value=0,
         ):
-            token_usd_price_from_coingecko = price_service.get_token_usd_price(gno_token_address)
+            token_usd_price_from_coingecko = price_service.get_token_usd_price(
+                gno_token_address
+            )
             native_coin_usd_price = price_service.get_native_coin_usd_price()
             self.assertAlmostEqual(
-                token_eth_value * native_coin_usd_price, token_usd_price_from_coingecko, delta=1.
+                token_eth_value * native_coin_usd_price,
+                token_usd_price_from_coingecko,
+                delta=1.0,
             )

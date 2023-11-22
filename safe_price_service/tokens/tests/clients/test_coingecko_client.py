@@ -1,7 +1,8 @@
 import functools
 
-import pytest
 from django.test import TestCase
+
+import pytest
 
 from gnosis.eth import EthereumNetwork
 
@@ -10,8 +11,7 @@ from ...clients.coingecko_client import CoingeckoClient
 from ...clients.exceptions import CoingeckoRateLimitError
 
 
-
-#FIXME Remove it
+# FIXME Remove it
 def skip_on(exception, reason="Test skipped due to a controlled exception"):
     """
     Decorator to skip a test if an exception is raised instead of failing it
@@ -33,6 +33,7 @@ def skip_on(exception, reason="Test skipped due to a controlled exception"):
         return wrapper
 
     return decorator_func
+
 
 class TestCoingeckoClient(TestCase):
     GNO_TOKEN_ADDRESS = "0x6810e776880C02933D47DB1b9fc05908e5386b96"
