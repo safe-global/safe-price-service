@@ -7,6 +7,7 @@ from logging import getLogger
 from typing import Dict, List, Optional, Tuple
 
 from django.conf import settings
+from django.utils import timezone
 
 from cachetools import TTLCache, cachedmethod
 from eth.constants import ZERO_ADDRESS
@@ -62,7 +63,16 @@ def get_price_services() -> Dict[int, "PriceService"]:
     price_services = {}
     for node_url in settings.ETHEREUM_NODES_URLS:
         ethereum_client = EthereumClient(node_url)
-        price_services[ethereum_client.get_chain_id()] = PriceService(ethereum_client)
+        try:
+            chain_id = ethereum_client.get_chain_id()
+            price_services[chain_id] = PriceService(ethereum_client)
+            logger.info(
+                "Loaded price service for chain-id=%d on node-url=%s",
+                chain_id,
+                node_url,
+            )
+        except IOError:
+            logger.error("Problem connecting to node-url=%s", node_url)
     return price_services
 
 
@@ -93,8 +103,11 @@ class PriceService:
         self.cache_token_coingecko_usd_value = TTLCache(
             maxsize=2048, ttl=60 * self.prices_cache_ttl_minutes
         )
-        self.cache_underlying_token = TTLCache(
+        self.cache_token_eth_value_from_composed_oracles = TTLCache(
             maxsize=2048, ttl=60 * self.prices_cache_ttl_minutes
+        )
+        self.cache_token_usd_price = TTLCache(
+            maxsize=50_000, ttl=60 * self.prices_cache_ttl_minutes
         )
 
     @cached_property
@@ -372,7 +385,6 @@ class PriceService:
                 pass
         return 0.0
 
-    @cachedmethod(cache=operator.attrgetter("cache_underlying_token"))
     def get_underlying_tokens(
         self, token_address: ChecksumAddress
     ) -> Optional[List[UnderlyingToken]]:
@@ -397,6 +409,9 @@ class PriceService:
                     oracle.__class__.__name__,
                 )
 
+    @cachedmethod(
+        cache=operator.attrgetter("cache_token_eth_value_from_composed_oracles")
+    )
     def get_token_eth_value_from_composed_oracles(
         self, token_address: ChecksumAddress
     ) -> float:
@@ -416,17 +431,23 @@ class PriceService:
 
         return eth_price
 
-    def get_token_usd_price(self, token_address: ChecksumAddress) -> float:
+    @cachedmethod(cache=operator.attrgetter("cache_token_usd_price"))
+    def get_token_usd_price(
+        self, token_address: ChecksumAddress
+    ) -> FiatPriceWithTimestamp:
         """
         :param token_address. If ``0x0...0`` address is provided, native coin price will be returned
         :return: Usd price for provided token
         """
         if token_address == ZERO_ADDRESS:
-            return self.get_native_coin_usd_price()
+            usd_price = self.get_native_coin_usd_price()
+        else:
+            eth_value = self.get_token_eth_value_from_oracles(
+                token_address
+            ) or self.get_token_eth_value_from_composed_oracles(token_address)
+            if eth_value:
+                usd_price = eth_value * self.get_native_coin_usd_price()
+            else:
+                usd_price = self.get_token_usd_price_from_coingecko(token_address)
 
-        eth_value = self.get_token_eth_value_from_oracles(
-            token_address
-        ) or self.get_token_eth_value_from_composed_oracles(token_address)
-        if eth_value:
-            return eth_value * self.get_native_coin_usd_price()
-        return self.get_token_usd_price_from_coingecko(token_address)
+        return FiatPriceWithTimestamp(usd_price, FiatCode.USD, timezone.now())

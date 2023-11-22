@@ -3,7 +3,9 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from django.urls import reverse
+from django.utils import timezone
 
+from eth_account import Account
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -16,7 +18,8 @@ logger = logging.getLogger(__name__)
 class TestTokenViews(APITestCase):
     ganache_chain_id = 1337
 
-    def test_token_price_view(self):
+    @mock.patch.object(timezone, "now", return_value=timezone.now())
+    def test_token_price_view(self, timezone_now_mock: MagicMock):
         chain_id = 1
         invalid_address = "0x1234"
         response = self.client.get(
@@ -53,6 +56,40 @@ class TestTokenViews(APITestCase):
                 "message": "Invalid ethereum address",
             },
         )
+
+        valid_address = Account.create().address
+        with mock.patch.object(
+            PriceService,
+            "get_token_eth_value_from_oracles",
+            return_value=4815,
+            autospec=True,
+        ) as get_token_eth_value_from_oracles_mock:
+            with mock.patch.object(
+                PriceService, "get_native_coin_usd_price", return_value=3, autospec=True
+            ) as get_native_coin_usd_price_mock:
+                response = self.client.get(
+                    reverse(
+                        "v1:tokens:price-usd",
+                        args=(
+                            chain_id,
+                            valid_address,
+                        ),
+                    )
+                )
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(
+                    response.data,
+                    {
+                        "fiat_code": "USD",
+                        "fiat_price": str(
+                            get_token_eth_value_from_oracles_mock.return_value
+                            * get_native_coin_usd_price_mock.return_value
+                        ),
+                        "timestamp": timezone_now_mock.return_value.isoformat().replace(
+                            "+00:00", "Z"
+                        ),
+                    },
+                )
 
     @mock.patch.object(
         PriceService, "get_native_coin_usd_price", return_value=321.2, autospec=True
@@ -97,10 +134,10 @@ class TestTokenViews(APITestCase):
 
     @mock.patch.object(
         PriceService,
-        "get_native_coin_usd_price",
+        "get_token_usd_price",
         side_effect=CannotGetPrice(),
     )
-    def test_token_price_view_error(self, get_native_coin_usd_price_mock: MagicMock):
+    def test_token_price_view_error(self, get_token_usd_price_mock: MagicMock):
         chain_id = 1
         token_address = "0x0000000000000000000000000000000000000000"
 

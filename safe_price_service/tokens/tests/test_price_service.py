@@ -3,7 +3,9 @@ from unittest.mock import MagicMock
 
 from django.conf import settings
 from django.test import TestCase
+from django.utils import timezone
 
+from eth.constants import ZERO_ADDRESS
 from eth_account import Account
 
 from gnosis.eth import EthereumClient, EthereumNetwork
@@ -24,6 +26,7 @@ class TestPriceService(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.ethereum_client = EthereumClient(settings.ETHEREUM_NODES_URLS[0])
+        get_price_services.cache_clear()
 
     def setUp(self) -> None:
         self.price_service = get_price_service(self.ethereum_client.get_chain_id())
@@ -32,6 +35,25 @@ class TestPriceService(TestCase):
         get_price_services.cache_clear()
 
     def test_get_price_services(self):
+        get_price_services.cache_clear()
+        with self.settings(
+            ETHEREUM_NODES_URLS=[
+                self.ethereum_client.ethereum_node_url,
+            ]
+        ):
+            with mock.patch.object(EthereumClient, "get_chain_id", side_effect=IOError):
+                with self.assertLogs(
+                    "safe_price_service.tokens.services.price_service"
+                ) as logger:
+                    self.assertEqual(get_price_services(), {})
+                    self.assertEqual(
+                        logger.output,
+                        [
+                            f"ERROR:safe_price_service.tokens.services.price_service:Problem connecting to node-url={self.ethereum_client.ethereum_node_url}"
+                        ],
+                    )
+
+        get_price_services.cache_clear()
         with self.settings(
             ETHEREUM_NODES_URLS=[
                 self.ethereum_client.ethereum_node_url,
@@ -45,12 +67,12 @@ class TestPriceService(TestCase):
             )  # Same chainId, only one dict entry
             self.assertTrue(is_chain_supported(chain_id))
 
+        get_price_services.cache_clear()
         with self.settings(
             ETHEREUM_NODES_URLS=["http://localhost:8545", "http://random-node:8545"]
         ):
             # Chain id is called thrice for every url, as cache is not mocked
             chain_ids = [4815, 4815, 4815, 1623, 1623, 1623]
-            get_price_services.cache_clear()
             with mock.patch.object(
                 EthereumClient, "get_chain_id", side_effect=chain_ids
             ) as get_chain_id_mock:
@@ -319,23 +341,55 @@ class TestPriceService(TestCase):
         mainnet_node = just_test_if_mainnet_node()
         price_service = PriceService(EthereumClient(mainnet_node))
         gno_token_address = "0x6810e776880C02933D47DB1b9fc05908e5386b96"
-        token_eth_value = price_service.get_token_eth_value_from_oracles(
+        token_fiat_price_with_timestamp = price_service.get_token_usd_price(
             gno_token_address
         )
-        self.assertIsInstance(token_eth_value, float)
-        self.assertGreater(token_eth_value, 0)
+        self.assertIsInstance(token_fiat_price_with_timestamp.fiat_price, float)
+        self.assertGreater(token_fiat_price_with_timestamp.fiat_price, 0)
+        self.assertLessEqual(token_fiat_price_with_timestamp.timestamp, timezone.now())
+
         with mock.patch.object(
             PriceService,
             "get_token_eth_value_from_oracles",
             autospec=True,
             return_value=0,
         ):
-            token_usd_price_from_coingecko = price_service.get_token_usd_price(
-                gno_token_address
-            )
-            native_coin_usd_price = price_service.get_native_coin_usd_price()
-            self.assertAlmostEqual(
-                token_eth_value * native_coin_usd_price,
-                token_usd_price_from_coingecko,
-                delta=1.0,
+            with mock.patch.object(
+                PriceService,
+                "get_token_eth_value_from_composed_oracles",
+                autospec=True,
+                return_value=0,
+            ):
+                # Response should be cached
+                self.assertEqual(
+                    price_service.get_token_usd_price(gno_token_address),
+                    token_fiat_price_with_timestamp,
+                )
+
+                # Clear cache, only available oracle should be coingecko
+                price_service.cache_token_usd_price.clear()
+
+                token_fiat_price_with_timestamp_from_coingecko = (
+                    price_service.get_token_usd_price(gno_token_address)
+                )
+                self.assertNotEqual(
+                    token_fiat_price_with_timestamp_from_coingecko,
+                    token_fiat_price_with_timestamp,
+                )
+                self.assertAlmostEqual(
+                    token_fiat_price_with_timestamp.fiat_price,
+                    token_fiat_price_with_timestamp_from_coingecko.fiat_price,
+                    delta=5.0,
+                )
+
+    def test_get_token_usd_price_native_coin(self):
+        with mock.patch.object(
+            PriceService,
+            "get_native_coin_usd_price",
+            autospec=True,
+            return_value=2342,
+        ) as get_native_coin_usd_price_mock:
+            self.assertEqual(
+                self.price_service.get_token_usd_price(ZERO_ADDRESS).fiat_price,
+                get_native_coin_usd_price_mock.return_value,
             )

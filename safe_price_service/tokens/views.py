@@ -1,4 +1,3 @@
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
@@ -44,13 +43,8 @@ class TokenPriceView(GenericAPIView):
 
         try:
             price_service = get_price_service(chain_id)
-            data = {
-                "fiat_code": "USD",
-                "fiat_price": str(price_service.get_token_usd_price(address)),
-                "timestamp": timezone.now(),  # FIXME
-            }
-            serializer = self.get_serializer(data=data)
-            assert serializer.is_valid()
+            data = price_service.get_token_usd_price(address)
+            serializer = self.get_serializer(data)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
         except CannotGetPrice:
