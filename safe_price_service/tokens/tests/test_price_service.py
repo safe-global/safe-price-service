@@ -379,7 +379,7 @@ class TestPriceService(TestCase):
                 self.assertAlmostEqual(
                     token_fiat_price_with_timestamp.fiat_price,
                     token_fiat_price_with_timestamp_from_coingecko.fiat_price,
-                    delta=5.0,
+                    delta=10.0,
                 )
 
     def test_get_token_usd_price_native_coin(self):

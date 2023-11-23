@@ -31,37 +31,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11"]
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      rabbitmq:
-        image: rabbitmq:alpine
-        options: >-
-          --health-cmd "rabbitmqctl await_startup"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - "5672:5672"
     steps:
     - name: Setup and run ganache
       run: |
@@ -86,7 +55,6 @@ jobs:
         coverage run --source=$SOURCE_FOLDER -m pytest -rxXs --reruns 3
       env:
         SOURCE_FOLDER: safe_price_service
-        DATABASE_URL: psql://postgres:postgres@localhost/postgres
         DJANGO_SETTINGS_MODULE: config.settings.test
         ETHEREUM_MAINNET_NODE: ${{ secrets.ETHEREUM_MAINNET_NODE }}
         ETHEREUM_NODES_URLS: http://localhost:8545
