@@ -10,9 +10,24 @@ Returns fiat prices for base currencies and ERC20 tokens.
 
 ## Configuration
 
-Environment variables:
+```bash
+cp .env.sample .env
+```
+
+Configure environment variables on `.env`:
+- `DJANGO_SECRET_KEY`: **IMPORTANT: Update it with a secure generated string**.
 - `ETHEREUM_NODES_URLS`: Comma separated list of the node RPCS for the chains supported for fetching prices.
 - `PRICES_CACHE_TTL_MINUTES`: Minutes to keep a price in cache.
+
+## Execution
+
+```bash
+docker compose build
+docker compose up
+```
+
+Then go to http://localhost:8000
+
 
 ## Contributors
 [See contributors](https://github.com/safe-global/safe-price-service/graphs/contributors)
