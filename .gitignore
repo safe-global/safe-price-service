@@ -105,7 +105,7 @@ venv.bak/
 
 # Django
 staticfiles/
-safe_transaction_service/media
+safe_price_service/media
 
 ### VisualStudioCode template
 .vscode/*
@@ -117,7 +117,7 @@ safe_transaction_service/media
 # Provided default Pycharm Run/Debug Configurations should be tracked by git
 # In case of local modifications made by Pycharm, use update-index command
 # for each changed file, like this:
-# git update-index --assume-unchanged .idea/safe_transaction_service.iml
+# git update-index --assume-unchanged .idea/safe_price_service.iml
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839

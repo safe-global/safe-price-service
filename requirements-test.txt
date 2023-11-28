@@ -6,7 +6,6 @@ factory-boy==3.3.0
 faker==19.11.0
 mypy==1.6.1
 pytest==7.4.2
-pytest-celery==0.0.0
 pytest-django==4.5.2
 pytest-env==1.0.1
 pytest-rerunfailures==12.0

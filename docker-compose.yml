@@ -15,21 +15,6 @@ services:
     depends_on:
       - web
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    command:
-      - --appendonly yes
-
-  db:
-    image: postgres:14-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-
   web:
     build:
       context: .

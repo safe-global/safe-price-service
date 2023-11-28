@@ -40,15 +40,10 @@ LANGUAGE_CODE = "en-us"
 SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
-# https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
-USE_L10N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/ref/settings/#force-script-name
 FORCE_SCRIPT_NAME = env("FORCE_SCRIPT_NAME", default=None)
-
-# Enable analytics endpoints
-ENABLE_ANALYTICS = env("ENABLE_ANALYTICS", default=False)
 
 # GUNICORN
 GUNICORN_REQUEST_TIMEOUT = gunicorn_request_timeout
@@ -58,22 +53,13 @@ GUNICORN_WORKERS = gunicorn_workers
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-DB_STATEMENT_TIMEOUT = env.int("DB_STATEMENT_TIMEOUT", 60_000)
+# Project does not need a database for now
 DATABASES = {
-    "default": env.db("DATABASE_URL"),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
 }
-DATABASES["default"]["ATOMIC_REQUESTS"] = False
-DATABASES["default"]["ENGINE"] = "django_db_geventpool.backends.postgresql_psycopg2"
-DATABASES["default"]["CONN_MAX_AGE"] = 0
-DB_MAX_CONNS = env.int("DB_MAX_CONNS", default=50)
-DATABASES["default"]["OPTIONS"] = {
-    # https://github.com/jneight/django-db-geventpool#settings
-    "MAX_CONNS": DB_MAX_CONNS,
-    "REUSE_CONNS": env.int("DB_REUSE_CONNS", default=DB_MAX_CONNS),
-    "options": f"-c statement_timeout={DB_STATEMENT_TIMEOUT}",
-}
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -297,10 +283,16 @@ LOGGING = {
     },
 }
 
-REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
-
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}
     },
 }
+
+# Ethereum
+ETHEREUM_NODE_URL = env("ETHEREUM_NODE_URL", default=None)
+ETHEREUM_NODES_URLS = env.list("ETHEREUM_NODES_URLS", default=[])
+
+
+# Prices
+PRICES_CACHE_TTL_MINUTES = env.int("PRICES_CACHE_TTL_MINUTES", default=60)
