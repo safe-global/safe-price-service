@@ -1,4 +1,4 @@
-cachetools==5.3.1
+cachetools==5.3.2
 django==4.2.6
 django-cors-headers==4.3.0
 django-debug-toolbar
