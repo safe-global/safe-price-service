@@ -248,7 +248,7 @@ class PriceService:
             return self.get_ewt_usd_price()
         elif self.ethereum_network in (EthereumNetwork.POLYGON, EthereumNetwork.MUMBAI):
             return self.get_matic_usd_price()
-        elif self.ethereum_network == EthereumNetwork.BINANCE_SMART_CHAIN_MAINNET:
+        elif self.ethereum_network == EthereumNetwork.BNB_SMART_CHAIN_MAINNET:
             return self.get_binance_usd_price()
         elif self.ethereum_network in (
             EthereumNetwork.GATHER_DEVNET_NETWORK,
@@ -270,7 +270,7 @@ class PriceService:
             return self.get_aurora_usd_price()
         elif self.ethereum_network in (
             EthereumNetwork.CRONOS_TESTNET,
-            EthereumNetwork.CRONOS_MAINNET_BETA,
+            EthereumNetwork.CRONOS_MAINNET,
         ):
             return self.get_cronos_usd_price()
         elif self.ethereum_network in (
@@ -301,7 +301,7 @@ class PriceService:
         ):
             return self.kucoin_client.get_celo_usd_price()
         elif self.ethereum_network in (
-            EthereumNetwork.XINFIN_XDC_NETWORK,
+            EthereumNetwork.XDC_NETWORK,
             EthereumNetwork.XDC_APOTHEM_NETWORK,
         ):
             return self.get_xdc_usd_price()

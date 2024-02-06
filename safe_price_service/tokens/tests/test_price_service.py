@@ -144,7 +144,7 @@ class TestPriceService(TestCase):
             self.assertEqual(price_service.get_native_coin_usd_price(), 0.9)
 
         # BINANCE
-        price_service.ethereum_network = EthereumNetwork.BINANCE_SMART_CHAIN_MAINNET
+        price_service.ethereum_network = EthereumNetwork.BNB_SMART_CHAIN_MAINNET
         with mock.patch.object(KucoinClient, "get_bnb_usd_price", return_value=1.2):
             price_service.cache_native_coin_usd_price.clear()
             self.assertEqual(price_service.get_native_coin_usd_price(), 1.2)
@@ -171,7 +171,7 @@ class TestPriceService(TestCase):
 
         # Cronos
         with mock.patch.object(KucoinClient, "get_cro_usd_price", return_value=4.4):
-            price_service.ethereum_network = EthereumNetwork.CRONOS_MAINNET_BETA
+            price_service.ethereum_network = EthereumNetwork.CRONOS_MAINNET
             price_service.cache_native_coin_usd_price.clear()
             self.assertEqual(price_service.get_native_coin_usd_price(), 4.4)
 
@@ -195,7 +195,7 @@ class TestPriceService(TestCase):
 
         # XDC
         with mock.patch.object(KucoinClient, "get_xdc_usd_price", return_value=7.7):
-            price_service.ethereum_network = EthereumNetwork.XINFIN_XDC_NETWORK
+            price_service.ethereum_network = EthereumNetwork.XDC_NETWORK
             price_service.cache_native_coin_usd_price.clear()
             self.assertEqual(price_service.get_xdc_usd_price(), 7.7)
 
