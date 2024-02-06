@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
@@ -7,9 +8,38 @@ from rest_framework.response import Response
 
 from gnosis.eth.utils import fast_is_checksum_address
 
+from safe_price_service import __version__
+
 from . import serializers
 from .clients import CannotGetPrice
-from .services.price_service import get_price_service, is_chain_supported
+from .services.price_service import (
+    get_price_service,
+    get_price_services,
+    is_chain_supported,
+)
+
+
+class AboutView(GenericAPIView):
+    """
+    Returns information and configuration of the service
+    """
+
+    @method_decorator(cache_page(5 * 60))  # 5 minutes
+    def get(self, request, format=None):
+        chain_ids_configured = list(get_price_services().keys())
+        content = {
+            "name": "Safe Price Service",
+            "version": __version__,
+            "api_version": request.version,
+            "secure": request.is_secure(),
+            "host": request.get_host(),
+            "headers": [x for x in request.META.keys() if "FORWARD" in x],
+            "settings": {
+                "CHAIN_IDS_CONFIGURED": chain_ids_configured,  # Don't reveal URLs
+                "PRICES_CACHE_TTL_MINUTES": settings.PRICES_CACHE_TTL_MINUTES,
+            },
+        }
+        return Response(content)
 
 
 class TokenPriceView(GenericAPIView):
@@ -18,6 +48,11 @@ class TokenPriceView(GenericAPIView):
 
     @method_decorator(cache_page(60 * 10))  # Cache 10 minutes
     def get(self, request, *args, **kwargs):
+        """
+        Get token USD value for the given `chain_id` and ERC55 checksummed `address`.
+        For the base currency of the network (for example, `Matic` for `Polygon network`)
+        use `0x0000000000000000000000000000000000000000` as the token address
+        """
         chain_id = self.kwargs["chain_id"]
         address = self.kwargs["address"]
 
