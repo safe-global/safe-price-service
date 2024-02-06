@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 class TestTokenViews(APITestCase):
     ganache_chain_id = 1337
 
+    def test_about_view(self):
+        url = reverse("v1:tokens:about")
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     @mock.patch.object(timezone, "now", return_value=timezone.now())
     def test_token_price_view(self, timezone_now_mock: MagicMock):
         chain_id = 1
