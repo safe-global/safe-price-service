@@ -344,6 +344,7 @@ class TestPriceService(TestCase):
         token_fiat_price_with_timestamp = price_service.get_token_usd_price(
             gno_token_address
         )
+        print(token_fiat_price_with_timestamp)
         self.assertIsInstance(token_fiat_price_with_timestamp.fiat_price, float)
         self.assertGreater(token_fiat_price_with_timestamp.fiat_price, 0)
         self.assertLessEqual(token_fiat_price_with_timestamp.timestamp, timezone.now())
@@ -360,27 +361,31 @@ class TestPriceService(TestCase):
                 autospec=True,
                 return_value=0,
             ):
-                # Response should be cached
-                self.assertEqual(
-                    price_service.get_token_usd_price(gno_token_address),
-                    token_fiat_price_with_timestamp,
-                )
+                with mock.patch.object(
+                    PriceService,
+                    "get_token_usd_price_from_coingecko",
+                    return_value=token_fiat_price_with_timestamp.fiat_price - 0.5,
+                ):
+                    # Response should be cached
+                    self.assertEqual(
+                        price_service.get_token_usd_price(gno_token_address),
+                        token_fiat_price_with_timestamp,
+                    )
 
-                # Clear cache, only available oracle should be coingecko
-                price_service.cache_token_usd_price.clear()
+                    # Clear cache, only available oracle should be coingecko
+                    price_service.cache_token_usd_price.clear()
 
-                token_fiat_price_with_timestamp_from_coingecko = (
-                    price_service.get_token_usd_price(gno_token_address)
-                )
-                self.assertNotEqual(
-                    token_fiat_price_with_timestamp_from_coingecko,
-                    token_fiat_price_with_timestamp,
-                )
-                self.assertAlmostEqual(
-                    token_fiat_price_with_timestamp.fiat_price,
-                    token_fiat_price_with_timestamp_from_coingecko.fiat_price,
-                    delta=10.0,
-                )
+                    token_fiat_price_with_timestamp_from_coingecko = (
+                        price_service.get_token_usd_price(gno_token_address)
+                    )
+                    self.assertNotEqual(
+                        token_fiat_price_with_timestamp_from_coingecko,
+                        token_fiat_price_with_timestamp,
+                    )
+                    self.assertEqual(
+                        token_fiat_price_with_timestamp.fiat_price,
+                        token_fiat_price_with_timestamp_from_coingecko.fiat_price + 0.5,
+                    )
 
     def test_get_token_usd_price_native_coin(self):
         with mock.patch.object(
