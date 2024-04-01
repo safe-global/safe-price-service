@@ -10,7 +10,7 @@ djangorestframework-camel-case==1.4.2
 docutils==0.20.1
 drf-yasg[validation]==1.21.7
 gunicorn[gevent]==21.2.0
-hexbytes==0.3.1
+hexbytes==1.2.0
 packaging>=21
 requests==2.31.0
 safe-eth-py[django]==6.0.0b23
