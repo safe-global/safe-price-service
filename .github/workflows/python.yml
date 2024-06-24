@@ -80,7 +80,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Deploy main
       if: github.ref == 'refs/heads/main'
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: docker/web/Dockerfile
@@ -93,7 +93,7 @@ jobs:
         cache-to: type=gha,mode=max
     - name: Deploy Develop
       if: github.ref == 'refs/heads/develop'
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: docker/web/Dockerfile
@@ -106,7 +106,7 @@ jobs:
         cache-to: type=gha,mode=max
     - name: Deploy Tag
       if: (github.event_name == 'release' && github.event.action == 'released')
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: docker/web/Dockerfile
