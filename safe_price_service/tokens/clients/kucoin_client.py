@@ -72,7 +72,7 @@ class KucoinClient(BaseHTTPClient):
         :return: current USD price for MATIC Token
         :raises: CannotGetPrice
         """
-        return self._get_price("MATIC-USDT")
+        return self._get_price("POL-USDT")
 
     def get_xdc_usd_price(self) -> float:
         """
