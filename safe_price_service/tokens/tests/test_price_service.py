@@ -8,9 +8,9 @@ from django.utils import timezone
 from eth.constants import ZERO_ADDRESS
 from eth_account import Account
 
-from gnosis.eth import EthereumClient, EthereumNetwork
-from gnosis.eth.oracles import KyberOracle, OracleException, UnderlyingToken
-from gnosis.eth.tests.utils import just_test_if_mainnet_node
+from safe_eth.eth import EthereumClient, EthereumNetwork
+from safe_eth.eth.oracles import KyberOracle, OracleException, UnderlyingToken
+from safe_eth.eth.tests.utils import just_test_if_mainnet_node
 
 from ..clients import CannotGetPrice, CoingeckoClient, KrakenClient, KucoinClient
 from ..services.price_service import (

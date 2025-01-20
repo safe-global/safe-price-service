@@ -13,10 +13,10 @@ from cachetools import TTLCache, cachedmethod
 from eth.constants import ZERO_ADDRESS
 from eth_typing import ChecksumAddress
 
-from gnosis.eth import EthereumClient
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.ethereum_client import EthereumNetwork
-from gnosis.eth.oracles import (
+from safe_eth.eth import EthereumClient
+from safe_eth.eth.constants import NULL_ADDRESS
+from safe_eth.eth.ethereum_client import EthereumNetwork
+from safe_eth.eth.oracles import (
     AaveOracle,
     BalancerOracle,
     ComposedPriceOracle,

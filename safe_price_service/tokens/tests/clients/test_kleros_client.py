@@ -1,8 +1,8 @@
 from django.test import TestCase
 
-from gnosis.eth import EthereumClient
-from gnosis.eth.tests.utils import just_test_if_mainnet_node
-from gnosis.eth.utils import fast_is_checksum_address
+from safe_eth.eth import EthereumClient
+from safe_eth.eth.tests.utils import just_test_if_mainnet_node
+from safe_eth.eth.utils import fast_is_checksum_address
 
 from ...clients.kleros_client import KlerosClient
 

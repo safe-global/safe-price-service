@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from requests import Session
 
-from gnosis.eth.tests.utils import just_test_if_mainnet_node
+from safe_eth.eth.tests.utils import just_test_if_mainnet_node
 
 from ...clients import CannotGetPrice, CoingeckoClient, KrakenClient, KucoinClient
 
