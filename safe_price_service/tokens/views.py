@@ -6,7 +6,7 @@ from rest_framework import response, status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from gnosis.eth.utils import fast_is_checksum_address
+from safe_eth.eth.utils import fast_is_checksum_address
 
 from safe_price_service import __version__
 
