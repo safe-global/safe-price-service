@@ -3,7 +3,7 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)
 ![Django 5](https://img.shields.io/badge/Django-5-blue.svg)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/safeglobal/safe-price-service?label=Docker&sort=semver)](https://hub.docker.com/r/safeglobal/safe-price-service)
+[![Container image](https://img.shields.io/badge/ghcr.io-safe--global%2Fsafe--price--service-0b5d52?logo=github&logoColor=white)](https://github.com/safe-global/safe-price-service/pkgs/container/safe-price-service)
 
 # Safe Price Service
 
